@@ -4,7 +4,7 @@
  *-------------------------------------------
  * @version 2.4.2
  * @createAt 28.02.2022 17:14
- * @updatedAt 25.06.2023 14:52
+ * @updatedAt 29.06.2023 22:52
  * @author NetCoDev
  *-------------------------------------------
  **/
@@ -1518,18 +1518,17 @@ class DateTimeObj extends PickerObj
         this.DateObj.embedProxy = this.proxy;
         this.TimeObj.embedProxy = this.proxy;
 
+        this.setConfig(config);
+        this.setOptionsMinMaxDate();
+        this.setInput(this.config.input.value);
+        this.setOptionsMinMaxRange();
 
-            this.setConfig(config);
-            this.setOptionsMinMaxDate();
+        PickerObj.setObj(this.id, this);
+        DateTimeUi.setElementDataSet(config.input, 'pickerId', 'data-picker-id', this.id);
+
+        this.config.input.onchange = () => {
             this.setInput(this.config.input.value);
-            this.setOptionsMinMaxRange();
-
-            PickerObj.setObj(this.id, this);
-            DateTimeUi.setElementDataSet(config.input, 'pickerId', 'data-picker-id', this.id);
-
-            this.config.input.onchange = () => {
-                this.setInput(this.config.input.value);
-            };
+        };
     }
 
     setConfig(config) {
@@ -1552,18 +1551,20 @@ class DateTimeObj extends PickerObj
         if (this.dataset !== null) {
             ['minDate', 'maxDate'].map(key => {
                 if (key in this.dataset && this.dataset[key] !== '') {
+
                     this.config.options[key] = this.dataset[key];
                     this.config.options[key + "Obj"] = DateTimeUi.getDateObj(this.dataset[key]);
+
                     const dateTimeObj = DateTimeUi.getDateTimeObj(this.dataset[key]);
-                    const timeKey = ('minDate') ? 'minTime' : 'maxTime';
-                    const timeMinuteKey = ('minDate') ? 'minMinute' : 'maxMinute';
+                    const timeKey = (key === 'minDate') ? 'minTime' : 'maxTime';
+                    const timeMinuteKey = (key === 'minDate') ? 'minMinute' : 'maxMinute';
+
                     this.DateObj.config.options[key] = dateTimeObj.date;
                     this.DateObj.config.options[key + "Obj"] = dateTimeObj.dateObj;
                     this.config.options.time[timeKey] = dateTimeObj.time;
                     this.config.options.time[timeMinuteKey] = dateTimeObj.minutes;
                 }
             });
-
         }
     }
 
@@ -1590,11 +1591,32 @@ class DateTimeObj extends PickerObj
         this.config.date = dateTimeObj.date;
         this.config.time = dateTimeObj.time;
         this.DateObj.setInput(this.config.date);
+        this.setActualMinMaxTime(newDate);
         this.TimeObj.setInput(this.config.time);
         this.TimeObj.timeRangeObj.setEmbedDate(this.config.date);
         if (this.config.inputTo !== null) {
             this.setOptionsMinMaxRange(true);
         }
+    }
+
+    setActualMinMaxTime (actualDateTime)
+    {
+        const actualDateList = actualDateTime.split(' ');
+        const minDateList = (DateTimeUi.regExDateTime.test(this.config.options.minDate)) ? this.config.options.minDate.split(' ') : [];
+        const maxDateList = (DateTimeUi.regExDateTime.test(this.config.options.maxDate)) ? this.config.options.maxDate.split(' ') : [];
+        const minDate = (minDateList.length) ? minDateList[0] : "";
+        const minTime = (minDateList.length > 1) ? minDateList[1] : "";
+        const maxDate = (maxDateList.length) ? maxDateList[0] : "";
+        const maxTime = (maxDateList.length > 1) ? maxDateList[1] : "";
+
+        if (minDate === actualDateList[0]) {
+            this.TimeObj.config.options.minTime = minTime;
+            this.TimeObj.config.options.minMinute = DateTimeUi.getMinutes(minTime);
+        } else if (maxDate === actualDateList[0]) {
+            this.TimeObj.config.options.maxTime = maxTime;
+            this.TimeObj.config.options.maxMinute = DateTimeUi.getMinutes(maxTime);
+        }
+
     }
 
     setInputUpdate() {
@@ -1610,11 +1632,14 @@ class DateTimeObj extends PickerObj
 
     getValidInput(value) {
         value = DateTimeUi.getValidDate(value, this.config);
+
         const valueDate = value.split(' ')[0];
+        const valueTime = value.split(' ')[1];
         const minDateTime = this.config.options.minDate;
         const minDate = minDateTime.split(' ')[0];
         const maxDateTime = this.config.options.maxDate;
         const maxDate = maxDateTime.split(' ')[0];
+        const maxTime = maxDateTime.split(' ')[1];
         if (minDateTime && !DateTimeUi.checkDateRange(minDateTime, value)) {
             if (this.config.valueCache !== value
                 && valueDate !== minDate
@@ -1625,7 +1650,7 @@ class DateTimeObj extends PickerObj
             }
         }
         if (maxDateTime && !DateTimeUi.checkDateRange( value, maxDateTime)) {
-            if (this.config.valueCache !== value && DateTimeUi.checkDateRange(this.config.valueCache, maxDateTime)) {
+            if (maxDate !== valueDate && this.config.valueCache !== value && DateTimeUi.checkDateRange(this.config.valueCache, maxDateTime)) {
                 value = this.config.valueCache;
             } else {
                 value = maxDateTime;

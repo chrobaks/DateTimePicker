@@ -3,6 +3,6 @@ DateTimePicker as plugin, written in native Javascript
 
 ### Documentation & Examples
 
-- [Documentation](https://netcodev.de/dateTimePicker/documentation)
-- [Examples](https://netcodev.de/dateTimePicker/examples)
-- [Configurator](https://netcodev.de/dateTimePicker/configurator)
+- [Documentation](https://domgridlib.netcodev.de/module/dateTimePicker/documentation)
+- [Examples](https://domgridlib.netcodev.de/module/dateTimePicker/examples)
+- [Configurator](https://domgridlib.netcodev.de/module/dateTimePicker/configurator)
